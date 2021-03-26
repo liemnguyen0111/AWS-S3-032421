@@ -12,13 +12,11 @@ router.get("/files", (req, res) => {
 
 // Post route - (Create)
 router.post("/files", upload, async (req, res) => {
-    
+
   // Upload file(s) into s3 bucket and return a location of file(s). If no files exist, return empty array
   const data = await s3(req.files).then((e) => e);
 
-  console.log(data);
-
-  res.status(200).send("okay");
+  res.status(200).send(data);
 });
 
 // Update route - (Update)
