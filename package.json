@@ -1,0 +1,32 @@
+{
+  "name": "aws-s3-bucket",
+  "version": "1.0.0",
+  "description": "Use to upload and retrieve infomation from S3 bucket",
+  "main": "index.js",
+  "scripts": {
+    "client": "cd client && yarn start",
+    "server": "nodemon index.js",
+    "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
+    "start": "node index.js",
+    "heroku-postbuild": "cd client && npm install && npm install --only=dev --no-shrinkwrap && npm run build",
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liemnguyen0111/AWS-S3-032421.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/liemnguyen0111/AWS-S3-032421/issues"
+  },
+  "homepage": "https://github.com/liemnguyen0111/AWS-S3-032421#readme",
+  "dependencies": {
+    "aws-sdk": "^2.871.0",
+    "concurrently": "^6.0.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "multer": "^1.4.2",
+    "uuid": "^8.3.2"
+  }
+}
