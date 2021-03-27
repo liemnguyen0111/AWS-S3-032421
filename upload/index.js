@@ -1,15 +1,17 @@
 // Dependency
 const multer = require("multer");
 const AWS = require("aws-sdk");
+const { prototype } = require("aws-sdk/clients/fis");
 
 // Variables
 // Access to AWS S3
-const s3 = new AWS.S3({
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
+const s3 = (query) =>
+  new AWS.S3({
+    credentials: {
+      accessKeyId: query.id,
+      secretAccessKey: query.key,
+    },
+  });
 
 const storage = multer.memoryStorage({
   destination: (req, file, cb) => {
@@ -17,8 +19,22 @@ const storage = multer.memoryStorage({
   },
 });
 
+//--- S3 View function ---//
+const s3View = async (query) => {
+  try {
+    return await s3(query)
+      .listObjectsV2({
+        Bucket: query.bucket,
+      })
+      .promise();
+  } catch (err) {
+    return err;
+  }
+};
+
 //--- S3 Upload function ---//
-const s3Upload = async (file) => {
+const s3Upload = async (file, query) => {
+  try {
   // Split the file name. Expample : "my-file.png" => ["my-file", "png"]
   const myFile = file.originalname.split(".");
   // File attributes
@@ -33,39 +49,51 @@ const s3Upload = async (file) => {
 
   // Actual file that will be store on s3
   const params = {
-    Bucket: process.env.AWS_BUCKET_NAME,
+    Bucket: query.bucket,
     Key: `${data.fileName}-${Date.now()}.${data.fileType}`,
-    key: data.originalName,
     ContentEncoding: data.contentEncoding,
     ContentDisposition: data.contentDisposition,
     ContentType: data.contentType,
     Body: data.buffer,
   };
 
-  return s3.upload(params).promise();
-};
-
-const s3View = async () => {
-  try {
-    return await s3
-      .listObjectsV2({
-        Bucket: process.env.AWS_BUCKET_NAME,
-      })
-      .promise();
+    return await s3(query).upload(params).promise();
   } catch (err) {
     return err;
   }
 };
 
+//--- S3 Delete function ---//
+const s3Delete = async (query) => {
+
+  try{
+    const files = JSON.parse(query.files);
+    const deleteFile = async (key) => {
+      const params = {
+        Bucket : query.bucket,
+        Key : key
+      }
+      try {
+        return await s3(query).deleteObject(params).promise();
+      } catch (e) { return err }
+    };
+  
+    return Promise.all(files? files.map( file => deleteFile(file)) : [])
+  } catch ( err ) { return "No Key(s) Passed."}
+
+};
+
 // Upload utils
 const utils = {
   // How file(s) are stored with multer
-  upload: multer({ storage }).any("file"),
+  multerUpload: multer({ storage }).any("file"),
   // Upload file(s) onto s3 bucket and return a promises
-  uploadS3: (files) =>
-    Promise.all(files ? files.map((file) => s3Upload(file)) : []),
+  uploadS3Files: (files, query) =>
+    Promise.all(files ? files.map((file) => s3Upload(file, query)) : []),
+  // Delete file(s) on s3 bucket
+  deleteS3Files: s3Delete,
   // View bucket
-  viewS3: s3View,
+  viewS3Files: s3View,
 };
 
 // Export utils
