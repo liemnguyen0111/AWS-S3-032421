@@ -23,7 +23,6 @@ const s3Upload = async (file) => {
   const myFile = file.originalname.split(".");
   // File attributes
   const data = {
-    originalName: file,
     fileName: myFile[0],
     fileType: myFile[myFile.length - 1],
     contentType: file.mimetype,

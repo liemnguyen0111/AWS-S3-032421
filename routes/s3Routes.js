@@ -22,7 +22,7 @@ router.post("/files", upload, async (req, res) => {
   res.status(200).send(data);
 });
 
-// Update route - (Update)
+// Update route - (Update) 
 router.put("/files", (req, res) => {
   res.json(200);
 });
